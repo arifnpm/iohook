@@ -7,7 +7,7 @@ const argv = require('minimist')(process.argv.slice(2), {
   string: ['version', 'runtime', 'abi'],
 });
 const pkg = require('./package.json');
-const nodeAbi = require('node-abi');
+const nodeAbi = require('@arifnpm/node-abi');
 const { optionsFromPackage } = require('./helpers');
 
 let arch = process.env.ARCH
@@ -41,6 +41,7 @@ function initBuild() {
         process.env.npm_config_targets.split(',')
       );
     }
+    console.log(options.targets);
     options.targets = options.targets.map((targetStr) => targetStr.split('-'));
     if (process.env.npm_config_targets === 'all') {
       options.targets = supportedTargets.map((arr) => [arr[0], arr[2]]);
@@ -59,6 +60,9 @@ function initBuild() {
     }
 
     if (options.targets.length > 0) {
+      // nodeAbi.allTargets.push({runtime: 'electron', target: '18.16.0', abi: '110', lts: true})
+      // nodeAbi.allTargets.push({runtime: 'electron', target: '18.16.0', abi: '112', lts: true})
+      // nodeAbi.allTargets.push({runtime: 'electron', target: '18.16.0', abi: '116', lts: true})
       targets = options.targets.map((e) => [
         e[0],
         nodeAbi.getTarget(e[1], e[0]),
@@ -78,9 +82,11 @@ function initBuild() {
     let abi = parts[2];
     chain = chain
       .then(function () {
+        console.log(runtime, version, abi);
         return build(runtime, version, abi);
       })
       .then(function () {
+        cpBuilds(runtime, abi);
         return tarGz(runtime, abi);
       })
       .catch((err) => {
@@ -99,6 +105,56 @@ function initBuild() {
   });
 
   cpGyp();
+}
+
+function cpBuilds(runtime, abi) {
+  let buildsPath =  path.join(__dirname, 'builds', runtime +
+    '-v' +
+    abi +
+    '-' +
+    process.platform +
+    '-' +
+    arch,
+    'build',
+    'Release'
+  );
+  try {
+    fs.unlinkSync(path.join(buildsPath, 'iohook.node'));
+  } catch (e) {}
+
+  fs.copySync(
+    path.join(__dirname, 'build', 'Release', 'iohook.node'),
+    path.join(buildsPath, 'iohook.node')
+  );
+  switch (process.platform) {
+    case 'win32':
+      try {
+        fs.unlinkSync(path.join(buildsPath, 'uiohook.dll'));
+      } catch (e) {}
+      fs.copySync(
+        path.join(__dirname, 'build', 'Release', 'uiohook.dll'),
+        path.join(buildsPath, 'uiohook.dll')
+      );
+      break;
+    case 'darwin':
+      try {
+        fs.unlinkSync(path.join(buildsPath, 'uiohook.dylib'));
+      } catch (e) {}
+      fs.copySync(
+        path.join(__dirname, 'build', 'Release', 'uiohook.dylib'),
+        path.join(buildsPath, 'uiohook.dylib')
+      );
+      break;
+    default:
+      try {
+        fs.unlinkSync(path.join(buildsPath, 'uiohook.so'));
+      } catch (e) {}
+      fs.copySync(
+        path.join(__dirname, 'build', 'Release', 'uiohook.so'),
+        path.join(buildsPath, 'uiohook.so')
+      );
+      break;
+  }
 }
 
 function cpGyp() {
@@ -140,8 +196,10 @@ function build(runtime, version, abi) {
       '--arch=' + arch,
     ];
 
+    console.log("runtime", runtime, version, arch, abi);
+
     if (/^electron/i.test(runtime)) {
-      args.push('--dist-url=https://atom.io/download/electron');
+      args.push('--dist-url=https://electronjs.org/headers');
     }
 
     if (parseInt(abi) >= 80) {
@@ -158,6 +216,10 @@ function build(runtime, version, abi) {
       }
       if (parseInt(abi) >= 67) {
         args.push('--enable_lto=false');
+      }
+    } else {
+      if (parseInt(abi) >= 64 && parseInt(abi) < 110) {
+        args.push('--build_v8_with_gn=false');
       }
     }
 
@@ -179,7 +241,7 @@ function build(runtime, version, abi) {
     }
 
     let proc = spawn(gypJsPath, args, {
-      env: process.env,
+      env: process.env
     });
     proc.stdout.pipe(process.stdout);
     proc.stderr.pipe(process.stderr);
@@ -239,6 +301,7 @@ function uploadFiles(files) {
       'tag-prefix': 'v',
       upload: process.env.GITHUB_ACCESS_TOKEN,
     };
+    console.log("opts", opts);
     upload(opts, function (err, result) {
       if (err) {
         return reject(err);

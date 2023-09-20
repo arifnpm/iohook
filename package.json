@@ -1,16 +1,16 @@
 {
-  "name": "iohook",
-  "version": "0.9.3",
+  "name": "@arifnpm/iohook",
+  "version": "0.9.3-a",
   "description": "Node.js global keyboard and mouse hook",
   "author": "Aloyan Dmitry",
   "license": "MIT",
-  "homepage": "https://github.com/wilix-team/iohook",
+  "homepage": "https://github.com/arifnpm/iohook",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wilix-team/iohook.git"
+    "url": "git+https://github.com/arifnpm/iohook.git"
   },
   "bugs": {
-    "url": "https://github.com/wilix-team/iohook/issues"
+    "url": "https://github.com/arifnpm/iohook/issues"
   },
   "main": "index.js",
   "types": "index.d.ts",
@@ -18,6 +18,9 @@
     "install": "node install.js",
     "build": "node build.js --upload=false",
     "build:ci": "node build.js --all",
+    "build:ci:nofips": "npm run build:ci --openssl_fips=''",
+    "build:local": "node build.js --all --upload=false",
+    "build:local:nofips": "npm run build:local --openssl_fips=''",
     "build:print": "node -e 'require(\"./helpers\").printManualBuildParams()'",
     "test": "jest",
     "lint:dry": "eslint --ignore-path .lintignore .",
@@ -79,12 +82,12 @@
     "jest": "^26.6.3",
     "lint-staged": "^11.0.0",
     "minimist": "^1.2.5",
-    "nan": "^2.15.0",
-    "node-abi": "^2.19.3",
-    "node-gyp": "^7.1.2",
+    "nan": "^2.18.0",
+    "@arifnpm/node-abi": "3.47.0-a",
+    "node-gyp": "^9.4.0",
     "prebuild": "^10.0.1",
     "prettier": "^2.3.1",
-    "robotjs": "^0.6.0",
+    "@arifnpm/robotjs": "0.6.0-a",
     "tar": "^6.0.5",
     "vuepress": "^1.7.1"
   },
@@ -145,6 +148,16 @@
       "89"
     ],
     [
+      "electron",
+      "22.0.0",
+      "110"
+    ],
+    [
+      "electron",
+      "26.0.0",
+      "116"
+    ],
+    [
       "node",
       "10.0.0",
       "64"
@@ -178,6 +191,11 @@
       "node",
       "16.0.0",
       "93"
+    ],
+    [
+      "node",
+      "18.0.0",
+      "108"
     ]
   ]
 }

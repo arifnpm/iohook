@@ -1,5 +1,5 @@
 const ioHook = require('../../index');
-const robot = require('robotjs');
+const robot = require('@arifnpm/robotjs');
 
 describe('Keyboard events', () => {
   afterEach(() => {
