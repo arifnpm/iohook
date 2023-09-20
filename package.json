@@ -1,6 +1,6 @@
 {
   "name": "@arifnpm/iohook",
-  "version": "0.9.3-a",
+  "version": "0.9.3-b",
   "description": "Node.js global keyboard and mouse hook",
   "author": "Aloyan Dmitry",
   "license": "MIT",
